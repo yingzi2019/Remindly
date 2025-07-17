@@ -2,7 +2,13 @@
  * Copyright 2015 Blanyal D'Souza.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+     final DateTime scheduleTime = _parseDateTime(reminder.date, reminder.time);
+    final DateTime now = DateTime.now();
+    
+    if (scheduleTime.isBefore(now)) {
+      debugPrint('Cannot schedule notification in the past');
+      return;
+    }use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -86,6 +92,13 @@ class NotificationService {
     await _notifications
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
+        
+    // Request exact alarm permission for Android 12+ (API 31+)
+    final androidImplementation = _notifications
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    if (androidImplementation != null) {
+      await androidImplementation.requestExactAlarmsPermission();
+    }
 
     _initialized = true;
   }
@@ -100,9 +113,17 @@ class NotificationService {
     }
 
     final DateTime scheduleTime = _parseDateTime(reminder.date, reminder.time);
+    final DateTime now = DateTime.now();
     
-    if (scheduleTime.isBefore(DateTime.now())) {
-      debugPrint('Cannot schedule notification in the past');
+    debugPrint('📋 Scheduling reminder: ${reminder.title}');
+    debugPrint('⏰ Schedule time: $scheduleTime');
+    debugPrint('� Current time: $now');
+    debugPrint('⏳ Time difference: ${scheduleTime.difference(now).inMinutes} minutes');
+    debugPrint('�🔄 Repeat enabled: ${reminder.repeat}');
+    
+    if (scheduleTime.isBefore(now)) {
+      debugPrint('❌ Cannot schedule notification in the past');
+      debugPrint('❌ Schedule: $scheduleTime vs Now: $now');
       return;
     }
 
@@ -143,7 +164,7 @@ class NotificationService {
       reminder.title,
       scheduledTZ,
       details,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      androidScheduleMode: AndroidScheduleMode.exact,
       uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.dateAndTime,
       payload: reminder.id.toString(),
@@ -197,6 +218,7 @@ class NotificationService {
           nextTime = baseTime.add(Duration(minutes: i * reminder.repeatNo));
           break;
         default:
+          debugPrint('Unknown repeat type: ${reminder.repeatType}');
           return;
       }
       
@@ -244,11 +266,16 @@ class NotificationService {
         reminder.title,
         scheduledTZ,
         details,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: AndroidScheduleMode.exact,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.dateAndTime,
         payload: reminder.id.toString(),
       );
+      
+      // For testing, only schedule first few for minute repeats
+      if (reminder.repeatType == 'minute' && i >= 10) {
+        break;
+      }
     }
   }
 

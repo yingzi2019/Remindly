@@ -15,13 +15,13 @@
  */
 
 import 'package:flutter/material.dart';
-import 'screens/main_screen.dart';
-import 'services/notification_service.dart';
+import 'package:remindly/screens/main_screen.dart';
+import 'package:remindly/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize notifications
+  // Initialize notification service
   await NotificationService.instance.initialize();
   
   runApp(const RemindlyApp());
