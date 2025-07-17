@@ -1,18 +1,97 @@
 # Remindly
-Android reminder app
+Flutter reminder app - Cross-platform reminder application
 
-Features
--------
+## Features
 
-- Material Design UI
-- Repeating reminders. Set intervals in minutes, hours, days, weeks and months
-- Completely free and ad-free
+- **Material Design UI** - Clean, modern interface following Material Design guidelines
+- **Cross-platform** - Runs on both Android and iOS
+- **Repeating reminders** - Set intervals in minutes, hours, days, weeks, months, and years
+- **Local notifications** - Push notifications that work even when the app is closed
+- **SQLite database** - Local storage for all your reminders
+- **Multi-select operations** - Select and delete multiple reminders at once
+- **Date/time sorting** - Reminders automatically sorted by date and time
+- **Completely free and ad-free**
 
+## Technology Stack
 
-<a href="https://play.google.com/store/apps/details?id=com.blanyal.remindly&utm_source=global_co&utm_medium=prtnr&utm_content=Mar2515&utm_campaign=PartBadge&pcampaignid=MKT-AC-global-none-all-co-pr-py-PartBadges-Oct1515-1"><img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/images/apps/en-play-badge.png" width="400"/></a>
+This app has been refactored from the original Java/Android codebase to Flutter:
 
-Screenshots
--------
+- **Flutter** - Cross-platform mobile app framework
+- **Dart** - Programming language
+- **sqflite** - SQLite database for Flutter
+- **flutter_local_notifications** - Local push notifications
+- **Material Design 3** - Modern UI components
+
+## Project Structure
+
+```
+lib/
+├── main.dart                 # App entry point
+├── models/
+│   └── reminder.dart         # Reminder data model
+├── services/
+│   ├── database_service.dart # SQLite database operations
+│   └── notification_service.dart # Local notifications
+├── screens/
+│   ├── main_screen.dart      # Reminder list screen
+│   ├── add_reminder_screen.dart # Add new reminder
+│   ├── edit_reminder_screen.dart # Edit existing reminder
+│   └── licenses_screen.dart  # Licenses information
+├── widgets/
+│   └── reminder_item.dart    # Individual reminder list item
+└── utils/
+    └── date_time_utils.dart  # Date/time utility functions
+```
+
+## Getting Started
+
+### Prerequisites
+
+- Flutter SDK (3.0+)
+- Android Studio or VS Code
+- Android device/emulator or iOS device/simulator
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yingzi2019/Remindly.git
+   cd Remindly
+   ```
+
+2. Install dependencies:
+   ```bash
+   flutter pub get
+   ```
+
+3. Run the app:
+   ```bash
+   flutter run
+   ```
+
+### Building
+
+To build for Android:
+```bash
+flutter build apk --release
+```
+
+To build for iOS:
+```bash
+flutter build ios --release
+```
+
+## Migration from Java/Android
+
+This Flutter version maintains feature parity with the original Android app while adding cross-platform support. Key improvements include:
+
+- **Cross-platform compatibility** - Single codebase for Android and iOS
+- **Modern architecture** - Clean separation of concerns with services and models
+- **Enhanced notifications** - More reliable notification system
+- **Better date/time handling** - Improved parsing and formatting
+- **Responsive UI** - Adaptive interface that works on different screen sizes
+
+## Screenshots
 
 <img src="https://github.com/blanyal/Remindly/blob/master/screenshots/screenshot1.png" width="400">
 
@@ -20,8 +99,11 @@ Screenshots
 
 <img src="https://github.com/blanyal/Remindly/blob/master/screenshots/screenshot3.png" width="400">
 
-License
--------
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
 
     Copyright 2015 Blanyal D'Souza
 
