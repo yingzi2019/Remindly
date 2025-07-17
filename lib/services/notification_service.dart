@@ -42,10 +42,16 @@ class NotificationService {
       requestBadgePermission: true,
       requestSoundPermission: true,
     );
+    const macosSettings = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
 
     const initSettings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
+      macOS: macosSettings,
     );
 
     await _notifications.initialize(
@@ -81,10 +87,12 @@ class NotificationService {
     );
 
     const iosDetails = DarwinNotificationDetails();
+    const macosDetails = DarwinNotificationDetails();
 
     const notificationDetails = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
+      macOS: macosDetails,
     );
 
     // Schedule the initial notification
@@ -132,6 +140,7 @@ class NotificationService {
             showWhen: false,
           ),
           iOS: DarwinNotificationDetails(),
+          macOS: DarwinNotificationDetails(),
         ),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         uiLocalNotificationDateInterpretation:

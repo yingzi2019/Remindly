@@ -18,6 +18,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/reminder.dart';
+import 'database_service.dart';
 
 abstract class StorageService {
   static StorageService? _instance;
@@ -27,7 +28,7 @@ abstract class StorageService {
       if (kIsWeb) {
         _instance = WebStorageService();
       } else {
-        _instance = WebStorageService(); // Use WebStorageService for all platforms for now
+        _instance = MobileStorageService(); // Use proper mobile storage for non-web platforms
       }
     }
     return _instance!;
@@ -159,5 +160,42 @@ class WebStorageService extends StorageService {
     int nextId = currentId + 1;
     await prefs.setInt(_countKey, nextId);
     return nextId;
+  }
+}
+
+class MobileStorageService extends StorageService {
+  @override
+  Future<int> addReminder(Reminder reminder) async {
+    return await DatabaseService.instance.addReminder(reminder);
+  }
+
+  @override
+  Future<List<Reminder>> getAllReminders() async {
+    return await DatabaseService.instance.getAllReminders();
+  }
+
+  @override
+  Future<Reminder?> getReminder(int id) async {
+    return await DatabaseService.instance.getReminder(id);
+  }
+
+  @override
+  Future<int> updateReminder(Reminder reminder) async {
+    return await DatabaseService.instance.updateReminder(reminder);
+  }
+
+  @override
+  Future<int> deleteReminder(int id) async {
+    return await DatabaseService.instance.deleteReminder(id);
+  }
+
+  @override
+  Future<int> deleteReminders(List<int> ids) async {
+    return await DatabaseService.instance.deleteReminders(ids);
+  }
+
+  @override
+  Future<int> getRemindersCount() async {
+    return await DatabaseService.instance.getRemindersCount();
   }
 }
