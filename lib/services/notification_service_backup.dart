@@ -2,7 +2,41 @@
  * Copyright 2015 Blanyal D'Souza.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+     final D    debugPrint('📋 Scheduli    final DateTime scheduleTime = _parseDateTime(reminder.date, reminder.time);
+    final DateTime now = DateTime.now();
+    
+    debugPrint('📋 Scheduling reminder: ${reminder.title}');
+    debugPrint('⏰ Schedule time: $scheduleTime');
+    debugPrint('🕐 Current time: $now');
+    debugPrint('⏳ Time difference: ${scheduleTime.difference(now).inMinutes} minutes');
+    debugPrint('🔄 Repeat enabled: ${reminder.repeat}');
+    debugPrint('📱 Platform: ${defaultTargetPlatform.name}');
+    
+    if (scheduleTime.isBefore(now)) {
+      debugPrint('❌ Cannot schedule notification in the past');
+      debugPrint('❌ Schedule: $scheduleTime vs Now: $now');
+      return;
+    }
+
+    // Create timezone-aware schedule time
+    final tz.TZDateTime scheduledTZ = tz.TZDateTime.from(scheduleTime, tz.local);
+    
+    // Debug timezone information
+    debugPrint('🌍 Local timezone: ${tz.local.name}');
+    debugPrint('🕐 Local time now: ${tz.TZDateTime.now(tz.local)}');
+    debugPrint('📅 Scheduled TZ time: $scheduledTZ');
+    debugPrint('🔄 TZ offset: ${scheduledTZ.timeZoneOffset}');{reminder.title}');
+    debugPrint('⏰ Schedule time: $scheduleTime');
+    debugPrint('🕐 Current time: $now');
+    debugPrint('⏳ Time difference: ${scheduleTime.difference(now).inMinutes} minutes');
+    debugPrint('🔄 Repeat enabled: ${reminder.repeat}');
+    debugPrint('📱 Platform: ${defaultTargetPlatform.name}');me scheduleTime = _parseDateTime(reminder.date, reminder.time);
+    final DateTime now = DateTime.now();
+    
+    if (scheduleTime.isBefore(now)) {
+      debugPrint('Cannot schedule notification in the past');
+      return;
+    }use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -27,12 +61,6 @@ class NotificationService {
 
   final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
   bool _initialized = false;
-
-  // iOS前台通知回调
-  static Future<void> onDidReceiveLocalNotification(
-      int id, String? title, String? body, String? payload) async {
-    debugPrint('🔔 iOS前台通知接收: ID=$id, Title=$title, Body=$body');
-  }
 
   bool _isPlatformSupported() {
     // Check if the current platform supports local notifications
@@ -78,7 +106,6 @@ class NotificationService {
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
-      onDidReceiveLocalNotification: onDidReceiveLocalNotification,
     );
     
     const initSettings = InitializationSettings(
@@ -92,12 +119,7 @@ class NotificationService {
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         debugPrint('🔔 Notification tapped: ${response.payload}');
       },
-      onDidReceiveBackgroundNotificationResponse: (NotificationResponse response) {
-        debugPrint('🔔 Background notification tapped: ${response.payload}');
-      },
-    );
-    
-    // Request permissions for iOS
+    );    // Request permissions for iOS
     final iosImplementation = _notifications
         .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
     if (iosImplementation != null) {
@@ -105,22 +127,12 @@ class NotificationService {
         alert: true,
         badge: true,
         sound: true,
-        critical: true, // 请求关键通知权限
       );
       debugPrint('iOS notification permissions granted: $granted');
       
       if (granted != true) {
         debugPrint('❌ iOS notification permissions denied! Notifications will not work.');
         debugPrint('📱 Please enable notifications in iOS Settings > Remindly > Notifications');
-        
-        // 尝试再次请求权限
-        debugPrint('🔄 Attempting to request permissions again...');
-        final retryGranted = await iosImplementation.requestPermissions(
-          alert: true,
-          badge: true,
-          sound: true,
-        );
-        debugPrint('🔄 Retry permission result: $retryGranted');
       } else {
         debugPrint('✅ iOS notification permissions successfully granted!');
       }
@@ -164,10 +176,9 @@ class NotificationService {
     
     debugPrint('📋 Scheduling reminder: ${reminder.title}');
     debugPrint('⏰ Schedule time: $scheduleTime');
-    debugPrint('🕐 Current time: $now');
+    debugPrint('� Current time: $now');
     debugPrint('⏳ Time difference: ${scheduleTime.difference(now).inMinutes} minutes');
-    debugPrint('🔄 Repeat enabled: ${reminder.repeat}');
-    debugPrint('📱 Platform: ${defaultTargetPlatform.name}');
+    debugPrint('�🔄 Repeat enabled: ${reminder.repeat}');
     
     if (scheduleTime.isBefore(now)) {
       debugPrint('❌ Cannot schedule notification in the past');
@@ -407,6 +418,7 @@ class NotificationService {
       debugPrint('❌ Stack trace: ${StackTrace.current}');
     }
   }
+  }
 
   DateTime _parseDateTime(String date, String time) {
     // Parse date in dd/MM/yyyy format
@@ -441,7 +453,7 @@ class NotificationService {
     
     // Cancel all related repeat notifications
     for (int i = 1; i <= 100; i++) {
-      await _notifications.cancel(id + (i * 10000));
+      await _notifications.cancel(id + i * 10000);
     }
   }
 
@@ -512,149 +524,5 @@ class NotificationService {
     } catch (e) {
       debugPrint('❌ Error showing test notification: $e');
     }
-  }
-
-  Future<void> checkPendingNotifications() async {
-    try {
-      final List<PendingNotificationRequest> pendingNotifications = 
-          await _notifications.pendingNotificationRequests();
-      
-      debugPrint('📋 Total pending notifications: ${pendingNotifications.length}');
-      
-      for (final notification in pendingNotifications) {
-        debugPrint('📅 Pending: ID=${notification.id}, Title="${notification.title}", Body="${notification.body}"');
-      }
-      
-      if (pendingNotifications.isEmpty) {
-        debugPrint('⚠️ No pending notifications found!');
-      }
-    } catch (e) {
-      debugPrint('❌ Error checking pending notifications: $e');
-    }
-  }
-
-  Future<void> showTestNotification() async {
-    debugPrint('🚀 Showing immediate test notification...');
-    
-    // 先检查权限
-    final hasPerms = await hasPermissions();
-    debugPrint('🔍 Current permissions status: $hasPerms');
-    
-    const androidDetails = AndroidNotificationDetails(
-      'test_channel',
-      'Test Notifications',
-      channelDescription: 'Channel for test notifications',
-      importance: Importance.high,
-      priority: Priority.high,
-      ticker: 'Test',
-      showWhen: true,
-      enableVibration: true,
-      playSound: true,
-    );
-    
-    // 尝试最强的iOS通知设置
-    const iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-      interruptionLevel: InterruptionLevel.critical, // 关键级别
-      categoryIdentifier: 'test_category',
-    );
-    
-    const details = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-    
-    try {
-      final now = DateTime.now();
-      
-      // 立即通知
-      await _notifications.show(
-        88888, // Test notification ID
-        '🔔 测试通知',
-        '这是一个立即弹出的测试通知! 时间: ${now.hour}:${now.minute.toString().padLeft(2, '0')}',
-        details,
-      );
-      debugPrint('✅ 立即测试通知发送成功!');
-      
-      // 延迟5秒的通知（用于测试后台通知）
-      final delayedTime = tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5));
-      await _notifications.zonedSchedule(
-        88890,
-        '🔔 延迟测试通知',
-        '这是5秒后的测试通知，请切换到后台查看！',
-        delayedTime,
-        details,
-        androidScheduleMode: AndroidScheduleMode.exact,
-        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-      );
-      debugPrint('✅ 5秒延迟通知已调度!');
-      
-      // 10秒后的通知
-      final delayedTime2 = tz.TZDateTime.now(tz.local).add(const Duration(seconds: 10));
-      await _notifications.zonedSchedule(
-        88891,
-        '🚨 后台通知测试',
-        '请确保应用在后台，这是10秒延迟通知',
-        delayedTime2,
-        const NotificationDetails(
-          iOS: DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-            interruptionLevel: InterruptionLevel.timeSensitive,
-          ),
-        ),
-        androidScheduleMode: AndroidScheduleMode.exact,
-        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-      );
-      debugPrint('✅ 10秒延迟通知已调度!');
-      
-    } catch (e) {
-      debugPrint('❌ Error showing test notification: $e');
-      rethrow;
-    }
-  }
-
-  Future<void> debugNotificationSystem() async {
-    debugPrint('🔧 === 通知系统调试信息 ===');
-    debugPrint('🔧 Platform: ${defaultTargetPlatform.name}');
-    debugPrint('🔧 Platform supported: ${_isPlatformSupported()}');
-    debugPrint('🔧 Service initialized: $_initialized');
-    
-    // 检查权限
-    final hasPerms = await hasPermissions();
-    debugPrint('🔧 Has permissions: $hasPerms');
-    
-    // 检查pending通知
-    try {
-      final pending = await _notifications.pendingNotificationRequests();
-      debugPrint('🔧 Pending notifications: ${pending.length}');
-    } catch (e) {
-      debugPrint('🔧 Error checking pending: $e');
-    }
-    
-    // iOS特定检查
-    if (defaultTargetPlatform == TargetPlatform.iOS) {
-      final iosImpl = _notifications.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
-      if (iosImpl != null) {
-        debugPrint('🔧 iOS implementation found: ✅');
-        try {
-          final requestResult = await iosImpl.requestPermissions(
-            alert: true,
-            badge: true,
-            sound: true,
-          );
-          debugPrint('🔧 iOS permission request result: $requestResult');
-        } catch (e) {
-          debugPrint('🔧 iOS permission request error: $e');
-        }
-      } else {
-        debugPrint('🔧 iOS implementation found: ❌');
-      }
-    }
-    
-    debugPrint('🔧 === 调试信息结束 ===');
   }
 }

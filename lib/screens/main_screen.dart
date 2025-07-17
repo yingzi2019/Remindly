@@ -186,6 +186,57 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
+  void _checkPendingNotifications() async {
+    try {
+      await NotificationService.instance.checkPendingNotifications();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('检查完成，请查看日志')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('检查失败: $e')),
+        );
+      }
+    }
+  }
+
+  void _showTestNotification() async {
+    try {
+      await NotificationService.instance.showTestNotification();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('🚀 测试通知已发送！')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('发送失败: $e')),
+        );
+      }
+    }
+  }
+
+  void _debugNotificationSystem() async {
+    try {
+      await NotificationService.instance.debugNotificationSystem();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('🔧 调试信息已输出到日志')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('调试失败: $e')),
+        );
+      }
+    }
+  }
+
   void _showLicenses() {
     Navigator.push(
       context,
@@ -220,9 +271,27 @@ class _MainScreenState extends State<MainScreen> {
                       _showLicenses();
                     } else if (value == 'clear_notifications') {
                       _clearAllNotifications();
+                    } else if (value == 'check_pending') {
+                      _checkPendingNotifications();
+                    } else if (value == 'test_notification') {
+                      _showTestNotification();
+                    } else if (value == 'debug_system') {
+                      _debugNotificationSystem();
                     }
                   },
                   itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'test_notification',
+                      child: Text('🚀 立即测试通知'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'debug_system',
+                      child: Text('🔧 调试通知系统'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'check_pending',
+                      child: Text('🔍 检查待发通知'),
+                    ),
                     const PopupMenuItem(
                       value: 'clear_notifications',
                       child: Text('清除所有通知'),
