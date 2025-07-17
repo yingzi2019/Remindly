@@ -169,6 +169,23 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
+  void _clearAllNotifications() async {
+    try {
+      await NotificationService.instance.cancelAllReminders();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('所有通知已清除')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('清除通知失败: $e')),
+        );
+      }
+    }
+  }
+
   void _showLicenses() {
     Navigator.push(
       context,
@@ -201,9 +218,15 @@ class _MainScreenState extends State<MainScreen> {
                   onSelected: (value) {
                     if (value == 'licenses') {
                       _showLicenses();
+                    } else if (value == 'clear_notifications') {
+                      _clearAllNotifications();
                     }
                   },
                   itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'clear_notifications',
+                      child: Text('清除所有通知'),
+                    ),
                     const PopupMenuItem(
                       value: 'licenses',
                       child: Text('Licenses'),

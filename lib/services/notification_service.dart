@@ -28,15 +28,29 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
   bool _initialized = false;
 
+  bool _isPlatformSupported() {
+    // Check if the current platform supports local notifications
+    return defaultTargetPlatform == TargetPlatform.android ||
+           defaultTargetPlatform == TargetPlatform.iOS ||
+           defaultTargetPlatform == TargetPlatform.macOS;
+  }
+
   Future<void> initialize() async {
     if (_initialized) return;
 
     // Initialize timezone
     tz.initializeTimeZones();
 
+    // Check if notifications are supported on this platform
+    if (!_isPlatformSupported()) {
+      debugPrint('Notifications not supported on this platform');
+      _initialized = true;
+      return;
+    }
+
     // Initialize local notifications
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const iosSettings = DarwinInitializationSettings(
+    const darwinSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
@@ -44,7 +58,8 @@ class NotificationService {
     
     const initSettings = InitializationSettings(
       android: androidSettings,
-      iOS: iosSettings,
+      iOS: darwinSettings,
+      macOS: darwinSettings,
     );
     
     await _notifications.initialize(initSettings);
@@ -52,6 +67,15 @@ class NotificationService {
     // Request permissions for iOS
     await _notifications
         .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+        ?.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+        
+    // Request permissions for macOS
+    await _notifications
+        .resolvePlatformSpecificImplementation<MacOSFlutterLocalNotificationsPlugin>()
         ?.requestPermissions(
           alert: true,
           badge: true,
@@ -68,6 +92,12 @@ class NotificationService {
 
   Future<void> scheduleReminder(Reminder reminder) async {
     if (!_initialized) await initialize();
+
+    // Skip scheduling if platform doesn't support notifications
+    if (!_isPlatformSupported()) {
+      debugPrint('Skipping notification scheduling - platform not supported');
+      return;
+    }
 
     final DateTime scheduleTime = _parseDateTime(reminder.date, reminder.time);
     
@@ -92,9 +122,16 @@ class NotificationService {
       presentSound: true,
     );
     
+    const macosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+    
     const details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
+      macOS: macosDetails,
     );
     
     final tz.TZDateTime scheduledTZ = tz.TZDateTime.from(scheduleTime, tz.local);
@@ -184,9 +221,16 @@ class NotificationService {
         presentSound: true,
       );
       
+      const macosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      );
+      
       const details = NotificationDetails(
         android: androidDetails,
         iOS: iosDetails,
+        macOS: macosDetails,
       );
       
       final tz.TZDateTime scheduledTZ = tz.TZDateTime.from(nextTime, tz.local);
@@ -254,7 +298,16 @@ class NotificationService {
         sound: true,
       );
       return granted ?? false;
+    } else if (defaultTargetPlatform == TargetPlatform.macOS) {
+      final macosImplementation = _notifications.resolvePlatformSpecificImplementation<
+          MacOSFlutterLocalNotificationsPlugin>();
+      final bool? granted = await macosImplementation?.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+      return granted ?? false;
     }
-    return true;
+    return true; // For web and other platforms
   }
 }
