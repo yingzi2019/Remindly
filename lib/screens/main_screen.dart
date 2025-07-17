@@ -17,7 +17,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/reminder.dart';
-import '../services/database_service.dart';
+import '../services/storage_service.dart';
 import '../services/notification_service.dart';
 import '../widgets/reminder_item.dart';
 import 'add_reminder_screen.dart';
@@ -32,7 +32,7 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  final DatabaseService _databaseService = DatabaseService.instance;
+  final StorageService _storageService = StorageService.instance;
   final NotificationService _notificationService = NotificationService.instance;
   
   List<Reminder> _reminders = [];
@@ -50,7 +50,7 @@ class _MainScreenState extends State<MainScreen> {
     setState(() => _isLoading = true);
     
     try {
-      final reminders = await _databaseService.getAllReminders();
+      final reminders = await _storageService.getAllReminders();
       
       // Sort reminders by date and time
       reminders.sort((a, b) {
@@ -123,7 +123,7 @@ class _MainScreenState extends State<MainScreen> {
       }
       
       // Delete from database
-      await _databaseService.deleteReminders(_selectedItems.toList());
+      await _storageService.deleteReminders(_selectedItems.toList());
       
       setState(() {
         _reminders.removeWhere((reminder) => _selectedItems.contains(reminder.id));
