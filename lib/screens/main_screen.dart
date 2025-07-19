@@ -17,7 +17,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/reminder.dart';
-import '../services/database_service.dart';
+import '../services/storage_service.dart';
 import '../services/notification_service.dart';
 import '../widgets/reminder_item.dart';
 import 'add_reminder_screen.dart';
@@ -32,7 +32,7 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  final DatabaseService _databaseService = DatabaseService.instance;
+  final StorageService _storageService = StorageService.instance;
   final NotificationService _notificationService = NotificationService.instance;
   
   List<Reminder> _reminders = [];
@@ -50,7 +50,7 @@ class _MainScreenState extends State<MainScreen> {
     setState(() => _isLoading = true);
     
     try {
-      final reminders = await _databaseService.getAllReminders();
+      final reminders = await _storageService.getAllReminders();
       
       // Sort reminders by date and time
       reminders.sort((a, b) {
@@ -123,7 +123,7 @@ class _MainScreenState extends State<MainScreen> {
       }
       
       // Delete from database
-      await _databaseService.deleteReminders(_selectedItems.toList());
+      await _storageService.deleteReminders(_selectedItems.toList());
       
       setState(() {
         _reminders.removeWhere((reminder) => _selectedItems.contains(reminder.id));
@@ -169,6 +169,74 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
+  void _clearAllNotifications() async {
+    try {
+      await NotificationService.instance.cancelAllReminders();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('所有通知已清除')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('清除通知失败: $e')),
+        );
+      }
+    }
+  }
+
+  void _checkPendingNotifications() async {
+    try {
+      await NotificationService.instance.checkPendingNotifications();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('检查完成，请查看日志')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('检查失败: $e')),
+        );
+      }
+    }
+  }
+
+  void _showTestNotification() async {
+    try {
+      await NotificationService.instance.showTestNotification();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('🚀 测试通知已发送！')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('发送失败: $e')),
+        );
+      }
+    }
+  }
+
+  void _debugNotificationSystem() async {
+    try {
+      await NotificationService.instance.debugNotificationSystem();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('🔧 调试信息已输出到日志')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('调试失败: $e')),
+        );
+      }
+    }
+  }
+
   void _showLicenses() {
     Navigator.push(
       context,
@@ -201,9 +269,33 @@ class _MainScreenState extends State<MainScreen> {
                   onSelected: (value) {
                     if (value == 'licenses') {
                       _showLicenses();
+                    } else if (value == 'clear_notifications') {
+                      _clearAllNotifications();
+                    } else if (value == 'check_pending') {
+                      _checkPendingNotifications();
+                    } else if (value == 'test_notification') {
+                      _showTestNotification();
+                    } else if (value == 'debug_system') {
+                      _debugNotificationSystem();
                     }
                   },
                   itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'test_notification',
+                      child: Text('🚀 立即测试通知'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'debug_system',
+                      child: Text('🔧 调试通知系统'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'check_pending',
+                      child: Text('🔍 检查待发通知'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'clear_notifications',
+                      child: Text('清除所有通知'),
+                    ),
                     const PopupMenuItem(
                       value: 'licenses',
                       child: Text('Licenses'),

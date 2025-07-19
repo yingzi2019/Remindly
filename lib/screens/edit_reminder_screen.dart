@@ -17,7 +17,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/reminder.dart';
-import '../services/database_service.dart';
+import '../services/storage_service.dart';
 import '../services/notification_service.dart';
 
 class EditReminderScreen extends StatefulWidget {
@@ -32,7 +32,7 @@ class EditReminderScreen extends StatefulWidget {
 class _EditReminderScreenState extends State<EditReminderScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _titleController;
-  final DatabaseService _databaseService = DatabaseService.instance;
+  final StorageService _storageService = StorageService.instance;
   final NotificationService _notificationService = NotificationService.instance;
 
   late DateTime _selectedDateTime;
@@ -126,7 +126,7 @@ class _EditReminderScreenState extends State<EditReminderScreen> {
         active: _active,
       );
 
-      await _databaseService.updateReminder(updatedReminder);
+      await _storageService.updateReminder(updatedReminder);
       
       // Cancel existing notifications
       await _notificationService.cancelReminder(widget.reminder.id!);
@@ -177,7 +177,7 @@ class _EditReminderScreenState extends State<EditReminderScreen> {
 
     try {
       await _notificationService.cancelReminder(widget.reminder.id!);
-      await _databaseService.deleteReminder(widget.reminder.id!);
+      await _storageService.deleteReminder(widget.reminder.id!);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

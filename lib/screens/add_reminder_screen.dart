@@ -17,7 +17,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/reminder.dart';
-import '../services/database_service.dart';
+import '../services/storage_service.dart';
 import '../services/notification_service.dart';
 
 class AddReminderScreen extends StatefulWidget {
@@ -30,7 +30,7 @@ class AddReminderScreen extends StatefulWidget {
 class _AddReminderScreenState extends State<AddReminderScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
-  final DatabaseService _databaseService = DatabaseService.instance;
+  final StorageService _storageService = StorageService.instance;
   final NotificationService _notificationService = NotificationService.instance;
 
   DateTime _selectedDateTime = DateTime.now().add(const Duration(hours: 1));
@@ -99,7 +99,7 @@ class _AddReminderScreenState extends State<AddReminderScreen> {
         active: _active,
       );
 
-      final id = await _databaseService.addReminder(reminder);
+      final id = await _storageService.addReminder(reminder);
       
       if (_active) {
         final reminderWithId = reminder.copyWith(id: id);
