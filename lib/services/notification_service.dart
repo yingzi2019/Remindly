@@ -657,4 +657,61 @@ class NotificationService {
     
     debugPrint('🔧 === 调试信息结束 ===');
   }
+
+  /// Show a notification immediately (used by WebView bridge)
+  Future<void> showNotification({
+    required int id,
+    required String title,
+    required String body,
+  }) async {
+    if (!_initialized) await initialize();
+
+    // Skip if platform doesn't support notifications
+    if (!_isPlatformSupported()) {
+      debugPrint('Skipping notification - platform not supported');
+      return;
+    }
+
+    const androidDetails = AndroidNotificationDetails(
+      'web_bridge_channel',
+      'Web Bridge Notifications',
+      channelDescription: 'Notifications triggered from web interface',
+      importance: Importance.high,
+      priority: Priority.high,
+      ticker: 'Web Notification',
+      showWhen: true,
+    );
+    
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+      interruptionLevel: InterruptionLevel.active,
+    );
+    
+    const macosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+    
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+      macOS: macosDetails,
+    );
+    
+    try {
+      await _notifications.show(
+        id,
+        title,
+        body,
+        details,
+      );
+      debugPrint('✅ Web bridge notification shown: $title');
+    } catch (e) {
+      debugPrint('❌ Error showing web bridge notification: $e');
+      rethrow;
+    }
+  }
 }

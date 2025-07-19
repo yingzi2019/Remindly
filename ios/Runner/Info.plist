@@ -56,5 +56,12 @@
 	<array>
 		<string>$(PRODUCT_BUNDLE_IDENTIFIER).notification</string>
 	</array>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 </dict>
 </plist>
