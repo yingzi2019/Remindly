@@ -15,8 +15,9 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:remindly/screens/main_screen.dart';
+import 'package:remindly/screens/webview_screen.dart';
 import 'package:remindly/services/notification_service.dart';
+import 'package:remindly/services/http_server_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,16 +25,16 @@ void main() async {
   // Initialize notification service
   await NotificationService.instance.initialize();
   
-  runApp(const RemindlyApp());
+  runApp(const RemindlyShellApp());
 }
 
-class RemindlyApp extends StatelessWidget {
-  const RemindlyApp({super.key});
+class RemindlyShellApp extends StatelessWidget {
+  const RemindlyShellApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Remindly',
+      title: 'Flutter Shell',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
@@ -42,8 +43,184 @@ class RemindlyApp extends StatelessWidget {
           shadowColor: Colors.black26,
         ),
       ),
-      home: const MainScreen(),
+      home: const ShellInitScreen(),
       debugShowCheckedModeBanner: false,
+    );
+  }
+}
+
+class ShellInitScreen extends StatefulWidget {
+  const ShellInitScreen({super.key});
+
+  @override
+  State<ShellInitScreen> createState() => _ShellInitScreenState();
+}
+
+class _ShellInitScreenState extends State<ShellInitScreen> {
+  bool _isInitializing = true;
+  String? _serverUrl;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeShell();
+  }
+
+  Future<void> _initializeShell() async {
+    try {
+      setState(() {
+        _isInitializing = true;
+        _errorMessage = null;
+      });
+
+      // Start HTTP server (this will extract static files and start server)
+      await HttpServerService().startServer();
+      
+      // Get server URL
+      final serverUrl = HttpServerService().serverUrl;
+      
+      if (serverUrl == null) {
+        throw Exception('Failed to get server URL');
+      }
+
+      setState(() {
+        _serverUrl = serverUrl;
+        _isInitializing = false;
+      });
+
+      // Navigate to WebView screen
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => WebViewScreen(serverUrl: serverUrl),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _isInitializing = false;
+        _errorMessage = e.toString();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    // Clean up server when app is disposed
+    HttpServerService().stopServer();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF667eea),
+              Color(0xFF764ba2),
+            ],
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.web,
+                size: 80,
+                color: Colors.white,
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Flutter Shell',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 40),
+              if (_isInitializing) ...[
+                const CircularProgressIndicator(
+                  color: Colors.white,
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Initializing...\nExtracting assets and starting server',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white70,
+                  ),
+                ),
+              ] else if (_errorMessage != null) ...[
+                const Icon(
+                  Icons.error,
+                  size: 60,
+                  color: Colors.red,
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 40),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.red),
+                  ),
+                  child: Column(
+                    children: [
+                      const Text(
+                        'Initialization Failed',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        _errorMessage!,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.white70,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: _initializeShell,
+                  child: const Text('Retry'),
+                ),
+              ] else ...[
+                const Icon(
+                  Icons.check_circle,
+                  size: 60,
+                  color: Colors.green,
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Server started at:\n$_serverUrl',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.white70,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

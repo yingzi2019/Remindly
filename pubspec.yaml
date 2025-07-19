@@ -22,6 +22,16 @@ dependencies:
   
   # UI
   flutter_slidable: ^3.0.0
+  
+  # WebView and HTTP Server
+  webview_flutter: ^4.4.4
+  shelf: ^1.4.1
+  shelf_static: ^1.1.2
+  
+  # File operations
+  archive: ^3.4.10
+  path_provider: ^2.1.2
+  file_picker: ^6.1.1
 
 dev_dependencies:
   flutter_test:
